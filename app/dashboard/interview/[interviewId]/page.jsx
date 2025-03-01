@@ -86,7 +86,7 @@ const Interview = () => {
               className="mt-16 px-12 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all"
               onClick={() => setWebCamEnabled(true)}
             >
-              Enable WebCam and Microphoneee
+              Enable WebCam and Microphone
             </Button>
           )}
         </div>
