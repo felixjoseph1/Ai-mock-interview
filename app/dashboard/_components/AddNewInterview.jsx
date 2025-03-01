@@ -14,7 +14,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { chatSession } from "@/utils/geminiModal";
 import { LoaderCircle } from "lucide-react";
-import { json } from "drizzle-orm/gel-core";
+import { MockInterview } from "@/utils/schema";
+import { v4 as uuidv4 } from "uuid";
+import { useUser } from "@clerk/nextjs";
+import moment from "moment";
+import { db } from "@/utils/db";
+import { useRouter } from "next/navigation";
 
 const AddNewInterview = () => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -22,6 +27,9 @@ const AddNewInterview = () => {
   const [jobDescription, setJobDescription] = useState();
   const [jobExperience, setJobExperience] = useState();
   const [loading, Setloading] = useState(false);
+  const router = useRouter();
+
+  const { user } = useUser();
 
   const onSubmit = async (e) => {
     Setloading(true);
@@ -32,11 +40,36 @@ const AddNewInterview = () => {
     const result = await chatSession.sendMessage(InputPrompt);
     const JsonResponse = result.response
       .text()
-      .replace("```json", "")
-      .replace("```", "");
+      .replace(/\*\s/g, "")
+      .replace(/```json/g, "")
+      .replace(/```/g, "");
     console.log(JsonResponse);
     console.log(JSON.parse(JsonResponse));
     const response = "Hello";
+
+    if (JsonResponse) {
+      const db_response = await db
+        .insert(MockInterview)
+        .values({
+          mockId: uuidv4(),
+          jsonMockResp: JsonResponse,
+          jobPosition: jobPosition,
+          jobDesc: jobDescription,
+          jobExperience: jobExperience,
+          createdBy: user?.primaryEmailAddress?.emailAddress,
+          createdAt: moment().format("DD-MM-YYYY"),
+        })
+        .returning({ mockId: MockInterview.mockId });
+      console.log(db_response);
+
+      if (db_response) {
+        setOpenDialog(false);
+        router.push("/dashboard/Interview/" + db_response[0]?.mockId);
+      }
+    } else {
+      window.alert("Something went wrong!!.Try again.");
+    }
+
     Setloading(false);
   };
   return (
