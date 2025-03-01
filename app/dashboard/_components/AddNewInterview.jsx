@@ -36,6 +36,7 @@ const AddNewInterview = () => {
       .replace("```", "");
     console.log(JsonResponse);
     console.log(JSON.parse(JsonResponse));
+    const response = "Hello";
     Setloading(false);
   };
   return (
