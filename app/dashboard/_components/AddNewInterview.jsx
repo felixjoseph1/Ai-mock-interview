@@ -45,7 +45,6 @@ const AddNewInterview = () => {
       .replace(/```/g, "");
     console.log(JsonResponse);
     console.log(JSON.parse(JsonResponse));
-    const response = "Hello";
 
     if (JsonResponse) {
       const db_response = await db
@@ -67,7 +66,7 @@ const AddNewInterview = () => {
         router.push("/dashboard/Interview/" + db_response[0]?.mockId);
       }
     } else {
-      window.alert("Something went wrong!!.Try again.");
+      alert("Something went wrong!!.Try again.");
     }
 
     Setloading(false);

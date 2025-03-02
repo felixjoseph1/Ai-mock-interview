@@ -5,10 +5,12 @@ import { MockInterview } from "@/utils/schema";
 import { eq } from "drizzle-orm";
 import { ArrowRight, Lightbulb, WebcamIcon } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Webcam from "react-webcam";
 
 const Interview = () => {
+  const router = useRouter();
   const params = useParams();
   const [interviewDetails, setInterviewDetails] = useState();
   const [webCamEnabled, setWebCamEnabled] = useState(false);
@@ -17,6 +19,12 @@ const Interview = () => {
     console.log(params.interviewId);
     GetInterviewDetails();
   }, []);
+
+  const handleNavigation = () => {
+    router.push(
+      "/dashboard/interview/" + params.interviewId + "/startinterview"
+    );
+  };
 
   const GetInterviewDetails = async () => {
     const result = await db
@@ -78,7 +86,10 @@ const Interview = () => {
             )}
           </div>
           {webCamEnabled ? (
-            <Button className="mt-16 px-12 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all flex items-center gap-2">
+            <Button
+              onClick={handleNavigation}
+              className="mt-16 px-12 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all flex items-center gap-2"
+            >
               Start Interview <ArrowRight className="mt-0.5" />
             </Button>
           ) : (
