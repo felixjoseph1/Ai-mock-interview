@@ -3,13 +3,7 @@ import { db } from "@/utils/db";
 import { chatSession } from "@/utils/geminiModal";
 import { UserAnswer } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
-import {
-  ArrowRight,
-  CircleStop,
-  LoaderCircle,
-  Mic,
-  WebcamIcon,
-} from "lucide-react";
+import { CircleStop, LoaderCircle, Mic, WebcamIcon } from "lucide-react";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import useSpeechToText from "react-hook-speech-to-text";
@@ -25,6 +19,7 @@ const RecordingSection = (props) => {
     results,
     startSpeechToText,
     stopSpeechToText,
+    setResults,
   } = useSpeechToText({
     continuous: true,
     useLegacyResults: false,
@@ -34,19 +29,23 @@ const RecordingSection = (props) => {
 
   const [userAnswer, setUserAnswer] = useState("");
   const [loading, setLoading] = useState(false);
-  const user = useUser();
+  const { user } = useUser();
 
   const ConvertSpeechToText = async () => {
     if (isRecording) {
       stopSpeechToText();
-      setLoading(true);
+      setLoading(true); // Ensure loading is set to true before API calls
+
       if (userAnswer.length < 10) {
         toast.error("Sorry, your response was not recorded. Please try again.");
-        setLoading(false);
-      } else {
+        setLoading(false); // Reset loading if validation fails
+        return;
+      }
+
+      try {
         const FeedbackPrompt = `Evaluate my interview response and provide feedback in JSON format.
 
-Question: "${InterviewQuestion}"  
+Question: "${InterviewQuestion?.[activeQuestionNumber]?.question}"  
 My Answer: "${userAnswer}"  
 
 Assess my response based on **relevance, clarity, technical accuracy, and completeness**. Provide **specific suggestions** on how to improve my answer for this question in a **maximum of 6 lines**. Additionally, provide an example of a well-structured and correct answer.  
@@ -65,46 +64,66 @@ Example response:
 
 Ensure the output is **only valid JSON** without extra text.`;
 
+        // Send prompt to Gemini
         const GeminiResponse = await chatSession.sendMessage(FeedbackPrompt);
-        //console.log(GeminiResponse.response.text());
-        const CleanedResponse = await GeminiResponse.response
-          .text()
+        const rawTextResponse = await GeminiResponse.response.text();
+
+        // Clean and parse response
+        const CleanedResponse = rawTextResponse
           .replace(/\*\s/g, "")
           .replace(/```json/g, "")
           .replace(/```/g, "");
 
         const ParsedResponse = JSON.parse(CleanedResponse);
-        console.log(ParsedResponse);
+        console.log("Parsed Response:", ParsedResponse);
 
-        if (CleanedResponse) {
-          const db_response = await db.insert(UserAnswer).values({
-            mockIdRef: interviewDetails.mockId,
-            question: InterviewQuestion?.[activeQuestionNumber]?.question,
-            correctAns: InterviewQuestion?.[activeQuestionNumber]?.answer,
-            userAns: userAnswer,
-            feedback: CleanedResponse[0]?.feedback,
-            rating: CleanedResponse?.rating,
-            example_answer: CleanedResponse?.example_answer,
-            userEmail: user?.primaryEmailAddress?.emailAddress,
-            createdAt: moment().format("DD-MM-YYYY"),
-          });
-
-          console.log("Data inserted successfully!");
-          if (db_response) {
-            toast.success("Your answer was recorded successfully");
-          } else {
-            toast.error(
-              "Sorry, your response was not recorded. Please try again."
-            );
-          }
+        if (
+          !ParsedResponse.rating ||
+          !ParsedResponse.feedback ||
+          !ParsedResponse.example_answer
+        ) {
+          throw new Error("Invalid response format from Gemini API");
         }
-        setLoading(false);
+
+        // Insert into DB
+        const db_response = await db.insert(UserAnswer).values({
+          mockIdRef: interviewDetails?.mockId || "unknown_mock_id",
+          question:
+            InterviewQuestion?.[activeQuestionNumber]?.question ||
+            "Unknown Question",
+          correctAns:
+            InterviewQuestion?.[activeQuestionNumber]?.answer ||
+            "No correct answer",
+          userAns: userAnswer,
+          feedback: ParsedResponse.feedback,
+          rating: ParsedResponse.rating,
+          example_answer: ParsedResponse.example_answer,
+          userEmail: user?.primaryEmailAddress?.emailAddress || "unknown_email",
+          createdAt: moment().format("DD-MM-YYYY"),
+        });
+
+        console.log("Data inserted successfully!");
+
+        if (db_response) {
+          toast.success("Your answer was recorded successfully");
+          setUserAnswer("");
+          setResults([]);
+        } else {
+          toast.error(
+            "Sorry, your response was not recorded. Please try again."
+          );
+          setResults([]);
+        }
+      } catch (error) {
+        console.error("Error processing Gemini response:", error);
+        toast.error("Failed to process feedback. Please try again.");
+      } finally {
+        setLoading(false); // Always reset loading state after processing
       }
     } else {
       startSpeechToText();
     }
   };
-
   useEffect(() => {
     results.map((result) =>
       setUserAnswer((prevAns) => prevAns + result.transcript)
@@ -123,7 +142,7 @@ Ensure the output is **only valid JSON** without extra text.`;
       </div>
       {webCamEnabled ? (
         <Button
-          className="mt-16  rounded-lg shadow-md  transition-all bg-blue-100"
+          className="mt-16  rounded-lg shadow-md  transition-all "
           variant="outline"
           onClick={() => {
             ConvertSpeechToText();
@@ -138,15 +157,15 @@ Ensure the output is **only valid JSON** without extra text.`;
                 </h2>
               ) : (
                 <h2 className="text-red-600 flex gap-2 items-center">
-                  <CircleStop className="text-xl" /> "Stop Recording"
+                  <CircleStop className="text-xl" /> Stop Recording
                 </h2>
               )}
             </>
           ) : (
-            <h2 className="flex gap-2 items-center ">
+            <h2 className="flex gap-2 items-center text-primary">
               {" "}
               <Mic className="text-xl" />
-              "Start Recording"
+              Start Recording
             </h2>
           )}
         </Button>
@@ -158,7 +177,7 @@ Ensure the output is **only valid JSON** without extra text.`;
           Enable WebCam and Microphone
         </Button>
       )}
-      <Button onClick={() => console.log(userAnswer)}>Show Answer</Button>
+      {/* <Button onClick={() => console.log(userAnswer)}>Show Answer</Button> */}
     </div>
   );
 };

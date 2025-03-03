@@ -1,16 +1,27 @@
-import { Lightbulb, Volume2 } from "lucide-react";
-import React from "react";
+import { Lightbulb, Volume2, VolumeX } from "lucide-react";
+import React, { useState } from "react";
 
 const QuestionSection = ({ InterviewQuestion, activeQuestionNumber }) => {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  let speechInstance = null;
+
   const TextToSpeech = (text) => {
-    if ("SpeechSynthesis" in window) {
-      const speech = new SpeechSynthesisUtterance(text);
-      window.speechSynthesis.speak(speech);
+    if (isSpeaking) {
+      // Stop speech if already playing
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
     } else {
-      alert("Sorry, your browser does not support Text to Speech.");
+      // Start speech
+      speechInstance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(speechInstance);
+      setIsSpeaking(true);
+
+      // Detect when speech finishes
+      speechInstance.onend = () => {
+        setIsSpeaking(false);
+      };
     }
   };
-
   return (
     <div className="p-6 border rounded-xl shadow-lg bg-white">
       {/* Question Navigation */}
@@ -20,6 +31,7 @@ const QuestionSection = ({ InterviewQuestion, activeQuestionNumber }) => {
             <h2
               key={index}
               className={`cursor-pointer rounded-lg p-3 text-sm md:text-base font-semibold transition-all duration-300 
+        
               ${
                 activeQuestionNumber === index
                   ? "bg-blue-700 text-white shadow-md"
@@ -36,12 +48,27 @@ const QuestionSection = ({ InterviewQuestion, activeQuestionNumber }) => {
         <h2 className="text-md md:text-lg font-semibold text-gray-900 leading-relaxed">
           {InterviewQuestion?.[activeQuestionNumber]?.question || "Loading..."}
         </h2>
-        <Volume2
-          onClick={() => {
-            TextToSpeech(InterviewQuestion?.[activeQuestionNumber]?.question);
-          }}
-          className="cursor-pointer mt-2"
-        />
+        <h2 className="pt-2">
+          {isSpeaking ? (
+            <VolumeX
+              onClick={() =>
+                TextToSpeech(
+                  InterviewQuestion?.[activeQuestionNumber]?.question
+                )
+              }
+              className="cursor-pointer "
+            />
+          ) : (
+            <Volume2
+              onClick={() =>
+                TextToSpeech(
+                  InterviewQuestion?.[activeQuestionNumber]?.question
+                )
+              }
+              className="cursor-pointer "
+            />
+          )}
+        </h2>
       </div>
 
       {/* Note Section */}
