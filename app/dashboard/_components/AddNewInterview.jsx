@@ -62,8 +62,8 @@ const AddNewInterview = () => {
       console.log(db_response);
 
       if (db_response) {
-        setOpenDialog(false);
-        router.push("/dashboard/Interview/" + db_response[0]?.mockId);
+        await setOpenDialog(false);
+        router.push("/dashboard/interview/" + db_response[0]?.mockId);
       }
     } else {
       alert("Something went wrong!!.Try again.");

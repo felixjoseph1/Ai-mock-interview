@@ -1,11 +1,12 @@
 "use client";
 import { UserButton } from "@clerk/nextjs";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { FiMenu } from "react-icons/fi"; // Mobile menu icon
 
 const Header = () => {
   const path = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -19,13 +20,16 @@ const Header = () => {
       <nav>
         <ul className="hidden md:flex gap-10 text-white font-medium list-none">
           <li
+            onClick={() => {
+              router.push("/dashboard");
+            }}
             className={`hover:text-yellow-300 transition duration-300 cursor-pointer font-semibold text-lg ${
               path === "/dashboard" && "text-yellow-300 text-xl font-semibold"
             }`}
           >
             Dashboard
           </li>
-          <li
+          {/* <li
             className={`hover:text-yellow-300 transition duration-300 cursor-pointer font-semibold text-lg ${
               path === "/questions" && "text-yellow-300 text-xl font-semibold"
             }`}
@@ -38,7 +42,7 @@ const Header = () => {
             }`}
           >
             Upgrade
-          </li>
+          </li> */}
           <li
             className={`hover:text-yellow-300 transition duration-300 cursor-pointer font-semibold text-lg ${
               path === "/how-it-works" &&

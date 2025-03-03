@@ -41,6 +41,18 @@ const page = () => {
     <div className="max-w-6xl mx-auto">
       {loading ? (
         <Skeleton className="h-40 w-full rounded-lg" />
+      ) : feedbackData.length === 0 ? (
+        <div className="flex flex-col items-left ">
+          <h2 className="text-xl font-bold">
+            No Feedback data found!!. Go back to take the interview.
+          </h2>
+          <Button
+            onClick={handleNavigation}
+            className="bg-blue-700 w-1/8 mt-8 ml-96"
+          >
+            Go Back
+          </Button>
+        </div>
       ) : (
         <>
           {/* Header Section */}
@@ -49,12 +61,7 @@ const page = () => {
               <h2 className="text-3xl text-green-600 font-bold">
                 🎉 Congratulations!
               </h2>
-              <Button
-                onClick={() => {
-                  handleNavigation();
-                }}
-                className={"bg-blue-700"}
-              >
+              <Button onClick={handleNavigation} className="bg-blue-700">
                 Go Home
               </Button>
             </div>
@@ -72,38 +79,36 @@ const page = () => {
 
           {/* Feedback Section */}
           <div className="mt-6 space-y-4">
-            {feedbackData &&
-              feedbackData.map((item, index) => (
-                <Collapsible
-                  key={index}
-                  className="border border-gray-300 rounded-lg shadow-sm p-4"
-                >
-                  <CollapsibleTrigger className="w-full flex justify-between text-left font-medium text-lg text-gray-800 cursor-pointer">
-                    <span>
-                      {index + 1}. {item.question}
-                    </span>
-                    <ChevronsUpDown className="transition-transform duration-300 group-hover:rotate-180" />
-                  </CollapsibleTrigger>
+            {feedbackData.map((item, index) => (
+              <Collapsible
+                key={index}
+                className="border border-gray-300 rounded-lg shadow-sm p-4"
+              >
+                <CollapsibleTrigger className="w-full flex justify-between text-left font-medium text-lg text-gray-800 cursor-pointer">
+                  <span>
+                    {index + 1}. {item.question}
+                  </span>
+                  <ChevronsUpDown className="transition-transform duration-300 group-hover:rotate-180" />
+                </CollapsibleTrigger>
 
-                  <CollapsibleContent className="mt-3 rounded-lg">
-                    <h3 className="text-blue-900 bg-blue-50 border rounded-lg p-2">
-                      <strong>📊 Rating:</strong>{" "}
-                      <span className="font-bold">{item.rating}/10</span>
-                    </h3>
-                    <h3 className="text-red-900 mt-2 border bg-red-50  rounded-lg p-2">
-                      <strong>🗣️ Your Answer:</strong>{" "}
-                      <span>{item.userAns}</span>
-                    </h3>
-                    <h3 className="text-green-900 bg-green-50 mt-2 border rounded-lg p-2">
-                      <strong>✅ Correct Answer:</strong>{" "}
-                      <span>{item.correctAns}</span>
-                    </h3>
-                    <h3 className="text-blue-900 bg-blue-50 mt-2 border rounded-lg p-2">
-                      <strong>📢 Feedback:</strong> <span>{item.feedback}</span>
-                    </h3>
-                  </CollapsibleContent>
-                </Collapsible>
-              ))}
+                <CollapsibleContent className="mt-3 rounded-lg">
+                  <h3 className="text-blue-900 bg-blue-50 border rounded-lg p-2">
+                    <strong>📊 Rating:</strong>{" "}
+                    <span className="font-bold">{item.rating}/10</span>
+                  </h3>
+                  <h3 className="text-red-900 mt-2 border bg-red-50 rounded-lg p-2">
+                    <strong>🗣️ Your Answer:</strong> <span>{item.userAns}</span>
+                  </h3>
+                  <h3 className="text-green-900 bg-green-50 mt-2 border rounded-lg p-2">
+                    <strong>✅ Correct Answer:</strong>{" "}
+                    <span>{item.correctAns}</span>
+                  </h3>
+                  <h3 className="text-blue-900 bg-blue-50 mt-2 border rounded-lg p-2">
+                    <strong>📢 Feedback:</strong> <span>{item.feedback}</span>
+                  </h3>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
           </div>
         </>
       )}
