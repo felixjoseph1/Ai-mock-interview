@@ -37,12 +37,32 @@ const AddNewInterview = () => {
     console.log(jobDescription, jobPosition, jobExperience);
     //const InputPrompt = `job position: ${jobPosition}, job description: ${jobDescription}, years of experience: ${jobExperience}. based on the above details. generate 5 interview questions with answers in json format`;
     //const InputPrompt = `job position: ${jobPosition}, job description: ${jobDescription}, years of experience: ${jobExperience}.based on the above details, generate 5 interview questions with answers in json format. the answers should be easily parsable through JSON.parse()`;
-    const InputPrompt = `Generate 5 interview questions based on the given details:
+    const InputPrompt = `Generate exactly 5 interview questions based on the given details:
 - Job Position: ${jobPosition}
 - Job Description: ${jobDescription}
 - Years of Experience: ${jobExperience}
 
-Provide the response in JSON format with only two fields: "question" and "answer". Each answer should have atleast 3 lines and atmost 4  lines. Ensure the output is properly formatted for easy parsing with JSON.parse().`;
+Return the output in **valid JSON format** as an **array of objects**. Each object should contain exactly two fields:
+1. **"question"** - A well-structured interview question.
+2. **"answer"** - A detailed answer with at least 3 lines and at most 4 lines.
+
+Ensure that:
+- No additional fields are included.
+- The output is a **valid JSON array** that can be parsed using \`JSON.parse()\`.
+
+**Example Output Format:**
+\`\`\`json
+[
+  {
+    "question": "What is your approach to debugging complex software issues?",
+    "answer": "I first reproduce the issue and analyze logs to identify patterns. Next, I isolate the faulty module using debugging tools. Finally, I implement and test a fix, ensuring it doesn't introduce regressions."
+  },
+    for all questions
+]
+\`\`\`
+
+Strictly adhere to this format. Do not add explanations or extra fields.`;
+
     const result = await chatSession.sendMessage(InputPrompt);
     const JsonResponse = result.response
       .text()
