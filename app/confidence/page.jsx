@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import axios from "axios";
-import MainLayout from "./_components/MainLayout";
 import AnalysisResults from "./_components/AnalysisResults";
+import UploadForm from "./_components/UploadForm";
+import Header from "./_components/Header";
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -51,12 +52,15 @@ export default function Home() {
   return (
     <div className="max-w-4xl mx-auto p-4">
       {!result ? (
-        <MainLayout
-          onFileChange={handleFileChange}
-          onSubmit={handleSubmit}
-          loading={loading}
-          error={error}
-        />
+        <div className="flex flex-col items-center justify-center min-h-screen p-6">
+          <Header />
+          <UploadForm
+            onFileChange={handleFileChange}
+            onSubmit={handleSubmit}
+            loading={loading}
+            error={error}
+          />
+        </div>
       ) : (
         <AnalysisResults result={result} onGoBack={handleGoBack} />
       )}
