@@ -13,25 +13,42 @@ import { ChevronsUpDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
-const page = () => {
+const Page = () => {
   const params = useParams();
   const router = useRouter();
   const [feedbackData, setFeedbackData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);  // Added error state
+  const [avgRating,setAvgRating]=useState(0);
 
   useEffect(() => {
     GetFeedback();
-  }, []);
+  }, [params?.interviewId]);  // Depend on interviewId to refetch data when needed
+
   const GetFeedback = async () => {
-    const Feedback = await db
-      .select()
-      .from(UserAnswer)
-      .where(eq(UserAnswer?.mockIdRef, params?.interviewId))
-      .orderBy(UserAnswer?.id);
-    console.log(Feedback);
-    setFeedbackData(Feedback);
-    setLoading(false);
+    try {
+      const Feedback = await db
+        .select()
+        .from(UserAnswer)
+        .where(eq(UserAnswer?.mockIdRef, params?.interviewId))
+        .orderBy(UserAnswer?.id);
+      console.log(Feedback);
+      setFeedbackData(Feedback);
+    } catch (err) {
+      setError("Failed to fetch feedback data");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (feedbackData.length > 0) {
+      const total = feedbackData.reduce((acc, item) => acc + Number(item.rating), 0);
+      const average = Math.round(total / feedbackData.length);
+      setAvgRating(average);
+    }
+  }, [feedbackData]);
+  
 
   const handleNavigation = () => {
     router.replace("/dashboard/");
@@ -41,10 +58,12 @@ const page = () => {
     <div className="max-w-6xl mx-auto">
       {loading ? (
         <Skeleton className="h-40 w-full rounded-lg" />
+      ) : error ? (  // Handle error state
+        <div className="text-red-600">{error}</div>
       ) : feedbackData.length === 0 ? (
-        <div className="flex flex-col items-left ">
+        <div className="flex flex-col items-left">
           <h2 className="text-xl font-bold">
-            No Feedback data found!!. Go back to take the interview.
+            No Feedback data found!! Go back to take the interview.
           </h2>
           <Button
             onClick={handleNavigation}
@@ -69,7 +88,7 @@ const page = () => {
               Here is your interview feedback.
             </h2>
             <h2 className="text-lg font-medium text-gray-700 mt-1">
-              Overall Rating: <span className="font-bold">7/10</span>
+              Overall Rating: <span className="font-bold">{avgRating}/10</span>
             </h2>
             <p className="text-gray-600 mt-2">
               Below are the interview questions along with correct answers, your
@@ -116,4 +135,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

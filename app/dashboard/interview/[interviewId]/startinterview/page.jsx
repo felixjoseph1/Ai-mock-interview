@@ -9,7 +9,6 @@ import RecordingSection from "./_components/RecordingSection";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { color } from "framer-motion";
 
 const StartInterview = () => {
   const params = useParams();
