@@ -5,6 +5,7 @@ import axios from "axios";
 import AnalysisResults from "./_components/AnalysisResults";
 import UploadForm from "./_components/UploadForm";
 import Header from "./_components/Header";
+import { generateSuggestions } from "./_components/GenerateFeedback";
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -36,13 +37,48 @@ export default function Home() {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-      setResult(response.data);
+      const resultData = response.data;
+
+      //Generate suggestions using Gemini API
+      const suggestions = await generateSuggestions(resultData);
+
+      setResult({
+        ...resultData,
+        suggestions,
+      });
     } catch (err) {
       setError("An error occurred while analyzing the video.");
     } finally {
       setLoading(false);
     }
   };
+  // const handleSubmit = async () => {
+  //   if (!selectedFile) {
+  //     alert("Please select a video file.");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   setError(null);
+
+  //   const formData = new FormData();
+  //   formData.append("file", selectedFile);
+
+  //   try {
+  //     const response = await axios.post(
+  //       "http://localhost:5000/analyze",
+  //       formData,
+  //       {
+  //         headers: { "Content-Type": "multipart/form-data" },
+  //       }
+  //     );
+  //     setResult(response.data);
+  //   } catch (err) {
+  //     setError("An error occurred while analyzing the video.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleGoBack = () => {
     setResult(null);
